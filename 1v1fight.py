@@ -1,8 +1,12 @@
-from typing import Any
 import pygame
 import os
+from utils import scale_image
 
 pygame.init()
+
+MAP = scale_image(pygame.image.load('imgs/map.png'), 0.81)
+MAP_BORDER = pygame.image.load('imgs/map_border.png')
+BG = scale_image(pygame.image.load('imgs/background.png'), 2)
 
 SCREEN_LARG = 800
 SCREEN_ALTE = 600
@@ -32,10 +36,11 @@ shoot2 = False
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+BLACK = (0, 0, 0)
 
-bullet_img = pygame.image.load('Progetto/imgs/bullet.png').convert_alpha()
+bullet_img = pygame.image.load('imgs/bullet.png').convert_alpha()
 
-BG = (144, 201, 120)
+
 def draw_bg():
     screen.fill(BG)
 
@@ -59,7 +64,7 @@ class giocatore(pygame.sprite.Sprite):
         
         for animation in animation_types:
             temp_list = []
-            img = pygame.image.load(f'Progetto/imgs/{self.char_type}/{animation}/0.png').convert_alpha()
+            img = pygame.image.load(f'imgs/{self.char_type}/{animation}/0.png').convert_alpha()
             img = pygame.transform.scale(img, (img.get_width() * scale, img.get_height() * scale))
             temp_list.append(img)
             self.animation_list.append(temp_list)
@@ -150,6 +155,7 @@ class HealthBar1():
         self.health  = health
 
         ratio = self.health / self.max_health
+        pygame.draw.rect(screen, BLACK, (self.x - 2, self.y - 2, 154, 24))
         pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
         pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
 
@@ -165,6 +171,7 @@ class HealthBar2():
 
         ratio = self.health / self.max_health
         diff = 150 - (150 * ratio)
+        pygame.draw.rect(screen, BLACK, (self.x - 2, self.y - 2, 154, 24))
         pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
         pygame.draw.rect(screen, GREEN, (self.x + diff, self.y, 150 * ratio, 20))
 
@@ -208,7 +215,9 @@ run = True
 while run:
 
     clock.tick(FPS)
-    screen.fill((52, 78, 91))
+    screen.blit(BG, (0, 0))
+    screen.blit(MAP, (0, 108))
+    
 
     player1.update()
     player1.draw()
@@ -216,6 +225,7 @@ while run:
     player2.draw()
     health_bar1.draw(player1.health)
     health_bar2.draw(player2.health)
+
 
     bullet_group.update()
     bullet_group.draw(screen)
