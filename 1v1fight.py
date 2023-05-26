@@ -122,9 +122,9 @@ class giocatore(pygame.sprite.Sprite):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 20
             if abs(self.direction) == 1:
-                bullet = Bullet(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
+                bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
             else:
-                bullet = Bullet(self.rect.centerx , self.rect.centery - (0.6 * self.rect.size[0] * (self.direction/2)), self.direction)
+                bullet = Bullet(self.rect.centerx , self.rect.centery - (0.7 * self.rect.size[0] * (self.direction/2)), self.direction)
             bullet_group.add(bullet)
 
     def update_action(self, new_action):
@@ -205,8 +205,8 @@ class Bullet(pygame.sprite.Sprite):
 bullet_group = pygame.sprite.Group()
     
 
-player1 = giocatore('player1', 200, 200, 3, 2)
-player2 = giocatore('player2', 200, 200, 3, 2)
+player1 = giocatore('player1', 200, 200, 2, 2)
+player2 = giocatore('player2', 200, 200, 2, 2)
 health_bar1 = HealthBar1(10, 10, player1.health, player1.health)
 health_bar2 = HealthBar2(640, 10, player2.health, player2.health)
 
