@@ -1,11 +1,13 @@
 import pygame
 import os
+import math
+import time
 from utils import scale_image
 
 pygame.init()
 
 MAP = scale_image(pygame.image.load('imgs/map.png'), 0.81)
-MAP_BORDER = pygame.image.load('imgs/map_border.png')
+MAP_BORDER = scale_image(pygame.image.load('imgs/map_border.png'), 0.81)
 MAP_BORDER_MASK = pygame.mask.from_surface(MAP_BORDER)
 BG = scale_image(pygame.image.load('imgs/background.png'), 2)
 
@@ -51,6 +53,9 @@ class giocatore(pygame.sprite.Sprite):
         self.alive = True
         self.char_type = char_type
         self.speed = speed
+        self.x = x
+        self.y = y
+
         self.shoot_cooldown = 0
         self.health = 50
         self.max_health = self.health
@@ -67,6 +72,7 @@ class giocatore(pygame.sprite.Sprite):
             temp_list = []
             img = pygame.image.load(f'imgs/{self.char_type}/{animation}/0.png').convert_alpha()
             img = pygame.transform.scale(img, (img.get_width() * scale, img.get_height() * scale))
+            self.img = img
             temp_list.append(img)
             self.animation_list.append(temp_list)
 
@@ -142,14 +148,10 @@ class giocatore(pygame.sprite.Sprite):
             self.update_action(3)
 
     def collide(self, mask, x=0, y=0):
-        player_mask = pygame.mask.from_surface(self.image)
-        offset = (int(self.rect.x - x), int(self.rect.y - y))
-        poi = 
+        player_mask = pygame.mask.from_surface(self.img)
+        offset = (int(self.x - x), int(self.y - y))
+        poi = mask.overlap(player_mask, offset)
         return poi
-    
-    def bounce(self):
-        self.vel = -self.vel
-        self.move()
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -316,10 +318,11 @@ while run:
                 if event.key == pygame.K_RCTRL:
                     shoot2 = False
     
-    if player1.collide(MAP_BORDER) != None:
-        player1.bounce()
-    if player2.collide(MAP_BORDER) != None:
-        player2.bounce()
+    if player1.collide(MAP_BORDER_MASK) != None:
+        print("collide")
+    if player2.collide(MAP_BORDER_MASK) != None:
+        # player2.speed = -player2.speed
+        pass
 
     if player1.alive == False or player2.alive == False:
         for event in pygame.event.get():
