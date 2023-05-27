@@ -6,6 +6,7 @@ pygame.init()
 
 MAP = scale_image(pygame.image.load('imgs/map.png'), 0.81)
 MAP_BORDER = pygame.image.load('imgs/map_border.png')
+MAP_BORDER_MASK = pygame.mask.from_surface(MAP_BORDER)
 BG = scale_image(pygame.image.load('imgs/background.png'), 2)
 
 SCREEN_LARG = 800
@@ -140,6 +141,16 @@ class giocatore(pygame.sprite.Sprite):
             self.alive = False
             self.update_action(3)
 
+    def collide(self, mask, x=0, y=0):
+        player_mask = pygame.mask.from_surface(self.image)
+        offset = (int(self.rect.x - x), int(self.rect.y - y))
+        poi = 
+        return poi
+    
+    def bounce(self):
+        self.vel = -self.vel
+        self.move()
+
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
@@ -216,7 +227,7 @@ while run:
 
     clock.tick(FPS)
     screen.blit(BG, (0, 0))
-    screen.blit(MAP, (0, 108))
+    screen.blit(MAP, (0, 110))
     
 
     player1.update()
@@ -305,6 +316,11 @@ while run:
                 if event.key == pygame.K_RCTRL:
                     shoot2 = False
     
+    if player1.collide(MAP_BORDER) != None:
+        player1.bounce()
+    if player2.collide(MAP_BORDER) != None:
+        player2.bounce()
+
     if player1.alive == False or player2.alive == False:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
