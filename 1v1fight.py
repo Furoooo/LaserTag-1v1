@@ -1,18 +1,17 @@
 import pygame
-import os
-import math
-import time
 from utils import scale_image
+from piattaforma import Piattaforma
+from varie import *
 
 pygame.init()
 
-MAP = scale_image(pygame.image.load('imgs/map.png'), 0.81)
-MAP_BORDER = scale_image(pygame.image.load('imgs/map_border.png'), 0.81)
-MAP_BORDER_MASK = pygame.mask.from_surface(MAP_BORDER)
-BG = scale_image(pygame.image.load('imgs/background.png'), 2)
+SCREEN_LARG = 1000
+SCREEN_ALTE = 680
 
-SCREEN_LARG = 800
-SCREEN_ALTE = 600
+window_size = (SCREEN_LARG, SCREEN_ALTE)
+display = pygame.Surface((600, 400))
+
+
 
 screen = pygame.display.set_mode((SCREEN_LARG, SCREEN_ALTE))
 pygame.display.set_caption('Game')
@@ -41,26 +40,23 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 
-bullet_img = pygame.image.load('imgs/bullet.png').convert_alpha()
-
-
-def draw_bg():
-    screen.fill(BG)
-
 class giocatore(pygame.sprite.Sprite):
-    def __init__(self, char_type, x, y, scale, speed):
+    def __init__(self, display, piattaforma, char_type, x, y, scale, speed):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
+        self.display = display
+        self.piattaforma = piattaforma
+        
         self.char_type = char_type
         self.speed = speed
-        self.x = x
-        self.y = y
-
+        
         self.shoot_cooldown = 0
         self.health = 50
         self.max_health = self.health
+        
         self.direction = 1
         self.flip = False
+        
         self.animation_list = []
         self.frame_index = 0
         self.action = 0
@@ -75,7 +71,6 @@ class giocatore(pygame.sprite.Sprite):
             self.img = img
             temp_list.append(img)
             self.animation_list.append(temp_list)
-
         
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
@@ -111,9 +106,55 @@ class giocatore(pygame.sprite.Sprite):
             self.flip = False
             self.direction = -2
 
+        
+
+        collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False}
+
+
+        hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
+        for tile in hit_list:
+            # muovo a destra
+            if self.direction == 1:
+                self.rect.right = tile.left
+                collision_types['right'] = True
+            # muovo a sinistra
+            if self.direction == -1:
+                self.rect.left = tile.right
+                collision_types['left'] = True
+
+        hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
+        for tile in hit_list:
+            # muovo in basso
+            if self.direction == -2:
+                self.rect.bottom = tile.top
+                collision_types['bottom'] = True
+            # muovo in alto
+            if self.direction == 2:
+                self.rect.top = tile.bottom
+                collision_types['top'] = True
+
+        # devo controllare anche se esco dallo schermo di lato (potrei inventare un modo con dei rect che formano il bordo)
+        if self.rect.left < 0:
+            self.rect.left = 0 
+        if self.rect.right > self.display.get_width():
+            self.rect.right = self.display.get_width()
+        if self.rect.top < 0:
+            self.rect.top = 0 
+        if self.rect.bottom > self.display.get_height():
+            self.rect.bottom = self.display.get_height()
+
+        if collision_types['bottom']:
+            dy = 0
+        if collision_types['top']:
+            dy = 0
+        if collision_types['left']:
+            dx = 0
+        if collision_types['right']:
+            dx = 0
+        
         self.rect.x += dx
         self.rect.y += dy
-
+    
     def update_animations(self):
         ANIMATION_COOLDOWN = 100
 
@@ -124,10 +165,11 @@ class giocatore(pygame.sprite.Sprite):
             self.frame_index += 1
         if self.frame_index >= len(self.animation_list[self.action]):
             self.frame_index = 0
+
     
     def shoot(self):
         if self.shoot_cooldown == 0:
-            self.shoot_cooldown = 20
+            self.shoot_cooldown = 30
             if abs(self.direction) == 1:
                 bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
             else:
@@ -147,15 +189,8 @@ class giocatore(pygame.sprite.Sprite):
             self.alive = False
             self.update_action(3)
 
-    def collide(self, mask, x=0, y=0):
-        player_mask = pygame.mask.from_surface(self.img)
-        offset = (int(self.x - x), int(self.y - y))
-        poi = mask.overlap(player_mask, offset)
-        return poi
-
     def draw(self):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
-
+        self.display.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 class HealthBar1():
     def __init__(self, x, y, health, max_health):
@@ -192,7 +227,7 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 10
-        self.image = bullet_img
+        self.image = pygame.image.load('imgs/bullet.png').convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.direction = direction
@@ -216,10 +251,11 @@ class Bullet(pygame.sprite.Sprite):
                 self.kill()
 
 bullet_group = pygame.sprite.Group()
-    
 
-player1 = giocatore('player1', 200, 200, 2, 2)
-player2 = giocatore('player2', 200, 200, 2, 2)
+piattaforma = Piattaforma(display)
+
+player1 = giocatore( display, piattaforma, 'player1', 200, 200, 1.4, 2)
+player2 = giocatore( display, piattaforma, 'player2', 200, 200, 1.4, 2)
 health_bar1 = HealthBar1(10, 10, player1.health, player1.health)
 health_bar2 = HealthBar2(640, 10, player2.health, player2.health)
 
@@ -228,9 +264,6 @@ run = True
 while run:
 
     clock.tick(FPS)
-    screen.blit(BG, (0, 0))
-    screen.blit(MAP, (0, 110))
-    
 
     player1.update()
     player1.draw()
@@ -238,6 +271,14 @@ while run:
     player2.draw()
     health_bar1.draw(player1.health)
     health_bar2.draw(player2.health)
+    
+    piattaforma.draw()
+    player1.draw()
+    player2.draw()
+    health_bar1.draw(player1.health)
+    health_bar2.draw(player2.health)
+    surf = pygame.transform.scale(display, window_size)
+    screen.blit(surf, (0,0))
 
 
     bullet_group.update()
@@ -318,11 +359,6 @@ while run:
                 if event.key == pygame.K_RCTRL:
                     shoot2 = False
     
-    if player1.collide(MAP_BORDER_MASK) != None:
-        print("collide")
-    if player2.collide(MAP_BORDER_MASK) != None:
-        # player2.speed = -player2.speed
-        pass
 
     if player1.alive == False or player2.alive == False:
         for event in pygame.event.get():
