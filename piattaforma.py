@@ -2,7 +2,7 @@ import pygame
 from math import ceil
 from utils import scale_image
 
-BG = scale_image(pygame.image.load('imgs/background.png'), 1)
+BG = scale_image(pygame.image.load('imgs/background.png'), 2)
 
 class Piattaforma():
     def __init__(self, display, nomefile = './mappe/game_map.txt') -> None:

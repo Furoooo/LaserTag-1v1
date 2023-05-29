@@ -9,9 +9,7 @@ SCREEN_LARG = 1000
 SCREEN_ALTE = 680
 
 window_size = (SCREEN_LARG, SCREEN_ALTE)
-display = pygame.Surface((600, 400))
-
-
+display = pygame.Surface((1000, 680))
 
 screen = pygame.display.set_mode((SCREEN_LARG, SCREEN_ALTE))
 pygame.display.set_caption('Game')
@@ -171,9 +169,9 @@ class giocatore(pygame.sprite.Sprite):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 30
             if abs(self.direction) == 1:
-                bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
+                bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction), self.rect.centery, self.direction, display, piattaforma)
             else:
-                bullet = Bullet(self.rect.centerx , self.rect.centery - (0.7 * self.rect.size[0] * (self.direction/2)), self.direction)
+                bullet = Bullet(self.rect.centerx , self.rect.centery - (0.7 * self.rect.size[0] * (self.direction/2)), self.direction, display, piattaforma)
             bullet_group.add(bullet)
 
     def update_action(self, new_action):
@@ -203,9 +201,9 @@ class HealthBar1():
         self.health  = health
 
         ratio = self.health / self.max_health
-        pygame.draw.rect(screen, BLACK, (self.x - 2, self.y - 2, 154, 24))
-        pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
-        pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
+        pygame.draw.rect(display, BLACK, (self.x - 2, self.y - 2, 154, 24))
+        pygame.draw.rect(display, RED, (self.x, self.y, 150, 20))
+        pygame.draw.rect(display, GREEN, (self.x, self.y, 150 * ratio, 20))
 
 class HealthBar2():
     def __init__(self, x, y, health, max_health):
@@ -219,15 +217,19 @@ class HealthBar2():
 
         ratio = self.health / self.max_health
         diff = 150 - (150 * ratio)
-        pygame.draw.rect(screen, BLACK, (self.x - 2, self.y - 2, 154, 24))
-        pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
-        pygame.draw.rect(screen, GREEN, (self.x + diff, self.y, 150 * ratio, 20))
+        pygame.draw.rect(display, BLACK, (self.x - 2, self.y - 2, 154, 24))
+        pygame.draw.rect(display, RED, (self.x, self.y, 150, 20))
+        pygame.draw.rect(display, GREEN, (self.x + diff, self.y, 150 * ratio, 20))
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction):
+    def __init__(self, x, y, direction, display, piattaforma):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 10
         self.image = pygame.image.load('imgs/bullet.png').convert_alpha()
+        
+        self.display = display
+        self.piattaforma = piattaforma
+
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.direction = direction
@@ -250,14 +252,57 @@ class Bullet(pygame.sprite.Sprite):
                 player1.health -= 10
                 self.kill()
 
+
+        collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False}
+        hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
+        for tile in hit_list:
+            # muovo a destra
+            if self.direction == 1:
+                self.rect.right = tile.left
+                collision_types['right'] = True
+            # muovo a sinistra
+            if self.direction == -1:
+                self.rect.left = tile.right
+                collision_types['left'] = True
+
+        hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
+        for tile in hit_list:
+            # muovo in basso
+            if self.direction == -2:
+                self.rect.bottom = tile.top
+                collision_types['bottom'] = True
+            # muovo in alto
+            if self.direction == 2:
+                self.rect.top = tile.bottom
+                collision_types['top'] = True
+
+        # devo controllare anche se esco dallo schermo di lato (potrei inventare un modo con dei rect che formano il bordo)
+        if self.rect.left < 0:
+            self.rect.left = 0 
+        if self.rect.right > self.display.get_width():
+            self.rect.right = self.display.get_width()
+        if self.rect.top < 0:
+            self.rect.top = 0 
+        if self.rect.bottom > self.display.get_height():
+            self.rect.bottom = self.display.get_height()
+
+        if collision_types['bottom']:
+            self.kill()
+        if collision_types['top']:
+            self.kill()
+        if collision_types['left']:
+            self.kill()
+        if collision_types['right']:
+            self.kill()
+
 bullet_group = pygame.sprite.Group()
 
 piattaforma = Piattaforma(display)
 
-player1 = giocatore( display, piattaforma, 'player1', 200, 200, 1.4, 2)
-player2 = giocatore( display, piattaforma, 'player2', 200, 200, 1.4, 2)
+player1 = giocatore(display, piattaforma, 'player1', 200, 200, 2, 2)
+player2 = giocatore(display, piattaforma, 'player2', 200, 200, 2, 2)
 health_bar1 = HealthBar1(10, 10, player1.health, player1.health)
-health_bar2 = HealthBar2(640, 10, player2.health, player2.health)
+health_bar2 = HealthBar2(840, 10, player2.health, player2.health)
 
 
 run = True
