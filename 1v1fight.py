@@ -5,11 +5,11 @@ from varie import *
 
 pygame.init()
 
-SCREEN_LARG = 1000
+SCREEN_LARG = 1200
 SCREEN_ALTE = 680
 
 window_size = (SCREEN_LARG, SCREEN_ALTE)
-display = pygame.Surface((1000, 680))
+display = pygame.Surface((1200, 680))
 
 screen = pygame.display.set_mode((SCREEN_LARG, SCREEN_ALTE))
 pygame.display.set_caption('Game')
@@ -35,6 +35,7 @@ moving_down_2 = False
 shoot2 = False
 
 RED = (255, 0, 0)
+BLUE = (0, 0 ,255)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 
@@ -302,7 +303,7 @@ piattaforma = Piattaforma(display)
 player1 = giocatore(display, piattaforma, 'player1', 200, 200, 2, 2)
 player2 = giocatore(display, piattaforma, 'player2', 200, 200, 2, 2)
 health_bar1 = HealthBar1(10, 10, player1.health, player1.health)
-health_bar2 = HealthBar2(840, 10, player2.health, player2.health)
+health_bar2 = HealthBar2(1040, 10, player2.health, player2.health)
 
 
 run = True
