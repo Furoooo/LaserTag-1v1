@@ -119,21 +119,21 @@ class giocatore(pygame.sprite.Sprite):
         hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
         for tile in hit_list:
             # muovo a destra
-            if self.direction_x == 1 and self.rect.right >= tile.left:
-                self.rect.right = tile.left
+            if self.rect.centerx <= tile.left and self.rect.right >= tile.left:
+                self.rect.right = tile.left - 5
                 collision_types['right'] = True
             # muovo a sinistra
-            elif self.direction_x == -1 and self.rect.left <= tile.right:
+            if self.rect.centerx >= tile.right and self.rect.left <= tile.right:
                 self.rect.left = tile.right
                 collision_types['left'] = True
 
         for tile in hit_list:
             # muovo in basso
-            if self.direction_y == -1 and self.rect.bottom >= tile.top:
+            if self.rect.centery <= tile.top and self.rect.bottom >= tile.top:
                 self.rect.bottom = tile.top
                 collision_types['bottom'] = True
             # muovo in alto
-            elif self.direction_y == 1 and self.rect.top <= tile.bottom:
+            elif self.rect.centery >= tile.bottom and self.rect.top <= tile.bottom:
                 self.rect.top = tile.bottom
                 collision_types['top'] = True
 
@@ -366,12 +366,24 @@ while run:
                 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
+                    moving_right_1 = False
                     moving_left_1 = True
+                    moving_up_1 = False
+                    moving_down_1 = False
                 if event.key == pygame.K_d:
                     moving_right_1 = True
+                    moving_left_1 = False
+                    moving_up_1 = False
+                    moving_down_1 = False
                 if event.key == pygame.K_w:
+                    moving_right_1 = False
+                    moving_left_1 = False
                     moving_up_1 = True
+                    moving_down_1 = False
                 if event.key == pygame.K_s:
+                    moving_right_1 = False
+                    moving_left_1 = False
+                    moving_up_1 = False
                     moving_down_1 = True
                 if event.key == pygame.K_SPACE:
                     shoot1 = True
