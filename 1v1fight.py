@@ -53,7 +53,8 @@ class giocatore(pygame.sprite.Sprite):
         self.health = 50
         self.max_health = self.health
         
-        self.direction = 1
+        self.direction_x = 1
+        self.direction_y = 0
         self.flip = False
         
         self.animation_list = []
@@ -88,23 +89,28 @@ class giocatore(pygame.sprite.Sprite):
         dy = 0
         
         if moving_left:
+            self.direction_x = -1
+            self.direction_y = 0 
             dx = -self.speed
             self.flip = True
-            self.direction = -1
-        if moving_right:
+            
+        elif moving_right:
+            self.direction_x = 1
+            self.direction_y = 0
             dx = self.speed
             self.flip = False
-            self.direction = 1
 
-        if moving_up == True:
+        elif moving_up == True:
+            self.direction_y = 1
+            self.direction_x = 0
             dy = -self.speed
             self.flip = False
-            self.direction = 2
-        if moving_down == True:
+            
+        elif moving_down == True:
+            self.direction_y = -1
+            self.direction_x = 0
             dy = self.speed
             self.flip = False
-            self.direction = -2
-
         
 
         collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False}
@@ -113,22 +119,21 @@ class giocatore(pygame.sprite.Sprite):
         hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
         for tile in hit_list:
             # muovo a destra
-            if self.direction == 1:
+            if self.direction_x == 1 and self.rect.right >= tile.left:
                 self.rect.right = tile.left
                 collision_types['right'] = True
             # muovo a sinistra
-            if self.direction == -1:
+            elif self.direction_x == -1 and self.rect.left <= tile.right:
                 self.rect.left = tile.right
                 collision_types['left'] = True
 
-        hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
         for tile in hit_list:
             # muovo in basso
-            if self.direction == -2:
+            if self.direction_y == -1 and self.rect.bottom >= tile.top:
                 self.rect.bottom = tile.top
                 collision_types['bottom'] = True
             # muovo in alto
-            if self.direction == 2:
+            elif self.direction_y == 1 and self.rect.top <= tile.bottom:
                 self.rect.top = tile.bottom
                 collision_types['top'] = True
 
@@ -151,8 +156,10 @@ class giocatore(pygame.sprite.Sprite):
         if collision_types['right']:
             dx = 0
         
-        self.rect.x += dx
-        self.rect.y += dy
+        if dx:
+            self.rect.x += dx
+        else:
+            self.rect.y += dy
     
     def update_animations(self):
         ANIMATION_COOLDOWN = 100
@@ -169,10 +176,10 @@ class giocatore(pygame.sprite.Sprite):
     def shoot(self):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 30
-            if abs(self.direction) == 1:
-                bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction), self.rect.centery, self.direction, display, piattaforma)
+            if abs(self.direction_x) == 1:
+                bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction_x), self.rect.centery, self.direction_x, self.direction_y, display, piattaforma)
             else:
-                bullet = Bullet(self.rect.centerx , self.rect.centery - (0.7 * self.rect.size[0] * (self.direction/2)), self.direction, display, piattaforma)
+                bullet = Bullet(self.rect.centerx , self.rect.centery - (0.7 * self.rect.size[0] * self.direction_y), self.direction_x, self.direction_y, display, piattaforma)
             bullet_group.add(bullet)
 
     def update_action(self, new_action):
@@ -223,7 +230,7 @@ class HealthBar2():
         pygame.draw.rect(display, GREEN, (self.x + diff, self.y, 150 * ratio, 20))
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction, display, piattaforma):
+    def __init__(self, x, y, direction_x, direction_y, display, piattaforma):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 10
         self.image = pygame.image.load('imgs/bullet.png').convert_alpha()
@@ -233,13 +240,14 @@ class Bullet(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.direction = direction
+        self.direction_x = direction_x
+        self.direction_y = direction_y
 
     def update(self):
-        if abs(self.direction) == 1:
-            self.rect.x += (self.direction * self.speed)
-        else:
-            self.rect.y -= ((self.direction/2) * self.speed)
+        if self.direction_x != 0:
+            self.rect.x += (self.direction_x * self.speed)
+        elif self.direction_y != 0:
+            self.rect.y -= (self.direction_y * self.speed)
         if self.rect.right < 0 or self.rect.left > SCREEN_LARG or self.rect.bottom > SCREEN_ALTE or self.rect.top < 0:
             self.kill()
 
@@ -258,22 +266,22 @@ class Bullet(pygame.sprite.Sprite):
         hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
         for tile in hit_list:
             # muovo a destra
-            if self.direction == 1:
+            if self.direction_x == 1:
                 self.rect.right = tile.left
                 collision_types['right'] = True
             # muovo a sinistra
-            if self.direction == -1:
+            if self.direction_x == -1:
                 self.rect.left = tile.right
                 collision_types['left'] = True
 
         hit_list = collision_test(self.rect, self.piattaforma.tile_rects)
         for tile in hit_list:
             # muovo in basso
-            if self.direction == -2:
+            if self.direction_y == -1:
                 self.rect.bottom = tile.top
                 collision_types['bottom'] = True
             # muovo in alto
-            if self.direction == 2:
+            if self.direction_y == 1:
                 self.rect.top = tile.bottom
                 collision_types['top'] = True
 
