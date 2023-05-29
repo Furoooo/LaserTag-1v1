@@ -1,4 +1,6 @@
 import pygame
+import sys
+import time
 from utils import scale_image
 from piattaforma import Piattaforma
 from varie import *
@@ -13,6 +15,7 @@ display = pygame.Surface((1200, 680))
 
 screen = pygame.display.set_mode((SCREEN_LARG, SCREEN_ALTE))
 pygame.display.set_caption('Game')
+
 
 clock = pygame.time.Clock()
 FPS = 60
@@ -38,6 +41,7 @@ RED = (255, 0, 0)
 BLUE = (0, 0 ,255)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
 class giocatore(pygame.sprite.Sprite):
     def __init__(self, display, piattaforma, char_type, x, y, scale, speed):
@@ -120,7 +124,7 @@ class giocatore(pygame.sprite.Sprite):
         for tile in hit_list:
             # muovo a destra
             if self.rect.centerx <= tile.left and self.rect.right >= tile.left:
-                self.rect.right = tile.left - 5
+                self.rect.right = tile.left
                 collision_types['right'] = True
             # muovo a sinistra
             if self.rect.centerx >= tile.right and self.rect.left <= tile.right:
@@ -177,9 +181,12 @@ class giocatore(pygame.sprite.Sprite):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 30
             if abs(self.direction_x) == 1:
-                bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction_x), self.rect.centery, self.direction_x, self.direction_y, display, piattaforma)
+                bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction_x), 
+                                self.rect.centery, self.direction_x, self.direction_y, display, piattaforma)
+                sparo.play()
             else:
-                bullet = Bullet(self.rect.centerx , self.rect.centery - (0.7 * self.rect.size[0] * self.direction_y), self.direction_x, self.direction_y, display, piattaforma)
+                bullet = Bullet(self.rect.centerx, self.rect.centery - (0.7 * self.rect.size[0] * self.direction_y), self)
+                sparo.play()
             bullet_group.add(bullet)
 
     def update_action(self, new_action):
@@ -194,6 +201,7 @@ class giocatore(pygame.sprite.Sprite):
             self.speed = 0
             self.alive = False
             self.update_action(3)
+            game_over()
 
     def draw(self):
         self.display.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -255,11 +263,13 @@ class Bullet(pygame.sprite.Sprite):
             if player2.alive:
                 player2.health -= 10
                 self.kill()
+                hurt.play()
         
         if pygame.sprite.spritecollide(player1, bullet_group, False):
             if player1.alive:
                 player1.health -= 10
                 self.kill()
+                hurt.play()
 
 
         collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False}
@@ -308,15 +318,101 @@ bullet_group = pygame.sprite.Group()
 
 piattaforma = Piattaforma(display)
 
-player1 = giocatore(display, piattaforma, 'player1', 200, 200, 2, 2)
-player2 = giocatore(display, piattaforma, 'player2', 200, 200, 2, 2)
+player1 = giocatore(display, piattaforma, 'player1', 200, 200, 2, 3)
+player2 = giocatore(display, piattaforma, 'player2', 200, 200, 2, 3)
 health_bar1 = HealthBar1(10, 10, player1.health, player1.health)
 health_bar2 = HealthBar2(1040, 10, player2.health, player2.health)
 
+font = pygame.font.SysFont('reemkufi', 50)
+game_over_font = pygame.font.SysFont('reemkufi', 80)
+
+def draw_text(text):
+    text_surface = font.render(text, True, (255, 255, 255))
+    text_rect = text_surface.get_rect(center=(SCREEN_LARG/2, SCREEN_ALTE/1.3))
+    image1 = pygame.image.load('imgs/controls/wasd.png')
+    image2 = scale_image(pygame.image.load('imgs/controls/spacebar.png'), 0.9)
+    image3 = pygame.image.load('imgs/controls/ijkl.png')
+    image4 = pygame.image.load('imgs/controls/lshift.png')
+
+    image5 = pygame.image.load('imgs/controls/player1.png')
+    image6 = pygame.image.load('imgs/controls/player2.png')
+
+    image7 = scale_image(pygame.image.load('imgs/player1/side/0.png'), 5)
+    image8 = scale_image(pygame.transform.flip(pygame.image.load('imgs/player2/side/0.png'), True, False), 5)
+
+    rect1 = image1.get_rect()
+    rect1.topleft = (10, 150)
+    rect2 = image2.get_rect()
+    rect2.topleft = (40, 325)
+    rect3 = image3.get_rect()
+    rect3.topright = (1190, 150)
+    rect4 = image4.get_rect()
+    rect4.topright = (1154, 325)
+
+    rect5 = image5.get_rect()
+    rect5.topleft = (10, 70)
+    rect6 = image6.get_rect()
+    rect6.topright = (1190, 70)
+
+    rect7 = image7.get_rect()
+    rect7.topleft = (200, 10)
+    rect8 = image8.get_rect()
+    rect8.topright = (1000, 10)
+
+    screen.fill((0, 0, 0))
+    pygame.draw.rect(screen, GREEN, (10, 10, 150, 20))
+    pygame.draw.rect(screen, GREEN, (1040, 10, 150, 20))
+    screen.blit(image1, rect1)
+    screen.blit(image2, rect2)
+    screen.blit(image3, rect3)
+    screen.blit(image4, rect4)
+    screen.blit(image5, rect5)
+    screen.blit(image6, rect6)
+    screen.blit(image7, rect7)
+    screen.blit(image8, rect8)
+    screen.blit(text_surface, text_rect)
+    pygame.display.flip()
+
+def wait_for_input():
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    waiting = False
+
+pygame.mixer.music.load("musica.wav")
+pygame.mixer.music.set_volume(0.2)
+pygame.mixer.music.play(-1)
+
+draw_text("Press BACKSPACE to start!")
+wait_for_input()
+
+sparo = pygame.mixer.Sound('sparo.wav')
+sparo.set_volume(0.5)
+hurt = pygame.mixer.Sound('hurt.wav')
+hurt.set_volume(0.6)
+
+gameover = False
+
+def game_over():
+    global gameover
+    display_game_over = game_over_font.render("Partita finita!", True, WHITE, BLACK)
+    display_restart = font.render("Premi BACKSPACE per riniziare", True, WHITE, BLACK)
+    rect_restart = display_restart.get_rect()
+    rect_game_over = display_game_over.get_rect()
+    rect_restart.center = (SCREEN_LARG/2, 600)
+    rect_game_over.center = (SCREEN_LARG/2, SCREEN_ALTE/2)
+    screen.blit(display_game_over, rect_game_over)
+    screen.blit(display_restart, rect_restart)
+    gameover = True
 
 run = True
 while run:
-
+    
     clock.tick(FPS)
 
     player1.update()
@@ -337,6 +433,8 @@ while run:
 
     bullet_group.update()
     bullet_group.draw(screen)
+
+    
 
     if player1.alive and player2.alive:
         if shoot1:
@@ -410,7 +508,7 @@ while run:
                     moving_up_2 = True
                 if event.key == pygame.K_k: 
                     moving_down_2 = True
-                if event.key == pygame.K_RCTRL:
+                if event.key == pygame.K_RSHIFT:
                     shoot2 = True
 
             if event.type == pygame.KEYUP:
@@ -422,14 +520,27 @@ while run:
                     moving_up_2 = False
                 if event.key == pygame.K_k:
                     moving_down_2 = False
-                if event.key == pygame.K_RCTRL:
+                if event.key == pygame.K_RSHIFT:
                     shoot2 = False
     
 
     if player1.alive == False or player2.alive == False:
+        screen.fill((0,0,0))
+        player1.check_alive()
+        player2.check_alive()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_BACKSPACE and gameover:
+                    
+                    bullet_group.empty()
+                    player1 = giocatore(display, piattaforma, 'player1', 200, 200, 2, 3)
+                    player2 = giocatore(display, piattaforma, 'player2', 200, 200, 2, 3)
+
+                    gameover = False
 
     pygame.display.update()
 
