@@ -185,7 +185,8 @@ class giocatore(pygame.sprite.Sprite):
                                 self.rect.centery, self.direction_x, self.direction_y, display, piattaforma)
                 sparo.play()
             else:
-                bullet = Bullet(self.rect.centerx, self.rect.centery - (0.7 * self.rect.size[0] * self.direction_y), self)
+                bullet = Bullet(self.rect.centerx, self.rect.centery - (0.7 * self.rect.size[0] * self.direction_y), 
+                                self.direction_x, self.direction_y, display, piattaforma)
                 sparo.play()
             bullet_group.add(bullet)
 
@@ -318,8 +319,8 @@ bullet_group = pygame.sprite.Group()
 
 piattaforma = Piattaforma(display)
 
-player1 = giocatore(display, piattaforma, 'player1', 200, 200, 2, 3)
-player2 = giocatore(display, piattaforma, 'player2', 200, 200, 2, 3)
+player1 = giocatore(display, piattaforma, 'player1', 50, 50, 2.3, 2)
+player2 = giocatore(display, piattaforma, 'player2', 1150, 630, 2.3, 2)
 health_bar1 = HealthBar1(10, 10, player1.health, player1.health)
 health_bar2 = HealthBar2(1040, 10, player2.health, player2.health)
 
@@ -400,14 +401,70 @@ gameover = False
 
 def game_over():
     global gameover
-    display_game_over = game_over_font.render("Partita finita!", True, WHITE, BLACK)
-    display_restart = font.render("Premi BACKSPACE per riniziare", True, WHITE, BLACK)
+    
+    if player1.alive == False and player2.alive == True:
+        image1 = scale_image(pygame.image.load('imgs/player1/Dead/0.png'), 5)
+        rect1 = image1.get_rect()
+        rect1.topleft = (200, 10)
+        screen.blit(image1, rect1)
+        pygame.draw.rect(screen, RED, (10, 10, 150, 20))
+
+        image2 = scale_image(pygame.transform.flip(pygame.image.load('imgs/player2/Side/0.png'), True, False), 5)
+        rect2 = image2.get_rect()
+        rect2.topright = (1000, 10)
+        screen.blit(image2, rect2)
+        pygame.draw.rect(screen, GREEN, (1040, 10, 150, 20)) 
+        display_game_over = game_over_font.render("Player 2 won!", True, WHITE, BLACK)
+
+    if player2.alive == False and player1.alive == True:
+        image1 = scale_image(pygame.image.load('imgs/player1/Side/0.png'), 5)
+        rect1 = image1.get_rect()
+        rect1.topleft = (200, 10)
+        screen.blit(image1, rect1)
+        pygame.draw.rect(screen, GREEN, (10, 10, 150, 20))
+
+        image2 = scale_image(pygame.transform.flip(pygame.image.load('imgs/player2/Dead/0.png'), True, False), 5)
+        rect2 = image2.get_rect()
+        rect2.topright = (1000, 10)
+        screen.blit(image2, rect2)
+        pygame.draw.rect(screen, RED, (1040, 10, 150, 20)) 
+        display_game_over = game_over_font.render("Player 1 won!", True, WHITE, BLACK)
+
+    if player1.alive == False and player2.alive == False:
+        image1 = scale_image(pygame.image.load('imgs/player1/Dead/0.png'), 5)
+        rect1 = image1.get_rect()
+        rect1.topleft = (200, 10)
+        screen.blit(image1, rect1)
+        pygame.draw.rect(screen, RED, (10, 10, 150, 20))
+
+        image2 = scale_image(pygame.transform.flip(pygame.image.load('imgs/player2/Dead/0.png'), True, False), 5)
+        rect2 = image2.get_rect()
+        rect2.topright = (1000, 10)
+        screen.blit(image2, rect2)
+        pygame.draw.rect(screen, RED, (1040, 10, 150, 20)) 
+        display_game_over = game_over_font.render("It's a draw!", True, WHITE, BLACK)
+
+    image5 = pygame.image.load('imgs/controls/player1.png')
+    image6 = pygame.image.load('imgs/controls/player2.png')
+    rect5 = image5.get_rect()
+    rect5.topleft = (10, 70)
+    rect6 = image6.get_rect()
+    rect6.topright = (1190, 70)
+    screen.blit(image5, rect5)
+    screen.blit(image6, rect6)
+
+   
+    display_restart = font.render("Press BACKSPACE to restart", True, WHITE, BLACK)
+    display_quit = font.render("Press ESC to close the game", True, WHITE, BLACK)
     rect_restart = display_restart.get_rect()
     rect_game_over = display_game_over.get_rect()
-    rect_restart.center = (SCREEN_LARG/2, 600)
-    rect_game_over.center = (SCREEN_LARG/2, SCREEN_ALTE/2)
+    rect_quit = display_quit.get_rect()
+    rect_quit.center = (SCREEN_LARG/2, 600)
+    rect_restart.center = (SCREEN_LARG/2, 525)
+    rect_game_over.center = (SCREEN_LARG/2, 300)
     screen.blit(display_game_over, rect_game_over)
     screen.blit(display_restart, rect_restart)
+    screen.blit(display_quit, rect_quit)
     gameover = True
 
 run = True
@@ -417,16 +474,21 @@ while run:
 
     player1.update()
     player1.draw()
+    
     player2.update()
     player2.draw()
+    
     health_bar1.draw(player1.health)
     health_bar2.draw(player2.health)
     
     piattaforma.draw()
+
     player1.draw()
     player2.draw()
+
     health_bar1.draw(player1.health)
     health_bar2.draw(player2.health)
+
     surf = pygame.transform.scale(display, window_size)
     screen.blit(surf, (0,0))
 
@@ -464,24 +526,12 @@ while run:
                 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
-                    moving_right_1 = False
                     moving_left_1 = True
-                    moving_up_1 = False
-                    moving_down_1 = False
                 if event.key == pygame.K_d:
                     moving_right_1 = True
-                    moving_left_1 = False
-                    moving_up_1 = False
-                    moving_down_1 = False
                 if event.key == pygame.K_w:
-                    moving_right_1 = False
-                    moving_left_1 = False
                     moving_up_1 = True
-                    moving_down_1 = False
                 if event.key == pygame.K_s:
-                    moving_right_1 = False
-                    moving_left_1 = False
-                    moving_up_1 = False
                     moving_down_1 = True
                 if event.key == pygame.K_SPACE:
                     shoot1 = True
@@ -522,10 +572,10 @@ while run:
                     moving_down_2 = False
                 if event.key == pygame.K_RSHIFT:
                     shoot2 = False
-    
 
     if player1.alive == False or player2.alive == False:
         screen.fill((0,0,0))
+
         player1.check_alive()
         player2.check_alive()
 
@@ -535,12 +585,15 @@ while run:
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_BACKSPACE and gameover:
-                    
+                    shoot1 = False
+                    shoot2 = False
                     bullet_group.empty()
-                    player1 = giocatore(display, piattaforma, 'player1', 200, 200, 2, 3)
-                    player2 = giocatore(display, piattaforma, 'player2', 200, 200, 2, 3)
+                    player1 = giocatore(display, piattaforma, 'player1', 50, 50, 2.3, 2)
+                    player2 = giocatore(display, piattaforma, 'player2', 1150, 630, 2.3, 2)
 
                     gameover = False
+                if event.key == pygame.K_ESCAPE:
+                    run = False
 
     pygame.display.update()
 
