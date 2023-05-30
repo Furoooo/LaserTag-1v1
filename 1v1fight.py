@@ -386,7 +386,7 @@ def wait_for_input():
                     waiting = False
 
 pygame.mixer.music.load("musica.wav")
-pygame.mixer.music.set_volume(0.2)
+pygame.mixer.music.set_volume(0.8)
 pygame.mixer.music.play(-1)
 
 draw_text("Press BACKSPACE to start!")
@@ -587,6 +587,17 @@ while run:
                 if event.key == pygame.K_BACKSPACE and gameover:
                     shoot1 = False
                     shoot2 = False
+
+                    moving_left_1 = False
+                    moving_right_1 = False
+                    moving_up_1 = False
+                    moving_down_1 = False
+
+                    moving_left_2 = False
+                    moving_right_2 = False
+                    moving_up_2 = False
+                    moving_down_2 = False
+
                     bullet_group.empty()
                     player1 = giocatore(display, piattaforma, 'player1', 50, 50, 2.3, 2)
                     player2 = giocatore(display, piattaforma, 'player2', 1150, 630, 2.3, 2)
