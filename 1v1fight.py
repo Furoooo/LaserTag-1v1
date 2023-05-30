@@ -412,7 +412,10 @@ def game_over():
         rect2 = image2.get_rect()
         rect2.topright = (1000, 10)
         screen.blit(image2, rect2)
-        pygame.draw.rect(screen, GREEN, (1040, 10, 150, 20)) 
+        ratio = player2.health / 50
+        diff = 150 - (150 * ratio)
+        pygame.draw.rect(screen, RED, (1040, 10, 150, 20))
+        pygame.draw.rect(screen, GREEN, (1040 + diff, 10, 150 * ratio, 20)) 
         display_game_over = game_over_font.render("Player 2 won!", True, WHITE, BLACK)
 
     if player2.alive == False and player1.alive == True:
@@ -420,7 +423,9 @@ def game_over():
         rect1 = image1.get_rect()
         rect1.topleft = (200, 10)
         screen.blit(image1, rect1)
-        pygame.draw.rect(screen, GREEN, (10, 10, 150, 20))
+        ratio = player1.health / 50
+        pygame.draw.rect(screen, RED, (10, 10, 150, 20))
+        pygame.draw.rect(screen, GREEN, (10, 10, 150 * ratio, 20))
 
         image2 = scale_image(pygame.transform.flip(pygame.image.load('imgs/player2/Dead/0.png'), True, False), 5)
         rect2 = image2.get_rect()
