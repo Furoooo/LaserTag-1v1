@@ -408,7 +408,6 @@ def game_over():
         rect1.topleft = (200, 10)
         screen.blit(image1, rect1)
         pygame.draw.rect(screen, RED, (10, 10, 150, 20))
-
         image2 = scale_image(pygame.transform.flip(pygame.image.load('imgs/player2/Side/0.png'), True, False), 5)
         rect2 = image2.get_rect()
         rect2.topright = (1000, 10)
@@ -441,6 +440,7 @@ def game_over():
         rect2 = image2.get_rect()
         rect2.topright = (1000, 10)
         screen.blit(image2, rect2)
+        
         pygame.draw.rect(screen, RED, (1040, 10, 150, 20)) 
         display_game_over = game_over_font.render("It's a draw!", True, WHITE, BLACK)
 
