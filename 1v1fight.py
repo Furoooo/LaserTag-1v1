@@ -181,11 +181,11 @@ class giocatore(pygame.sprite.Sprite):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 30
             if abs(self.direction_x) == 1:
-                bullet = Bullet(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction_x), 
+                bullet = Bullet(self.rect.centerx + (0.7 * self.rect.size[0] * self.direction_x), 
                                 self.rect.centery, self.direction_x, self.direction_y, display, piattaforma)
                 sparo.play()
             else:
-                bullet = Bullet(self.rect.centerx, self.rect.centery - (0.6 * self.rect.size[0] * self.direction_y), 
+                bullet = Bullet(self.rect.centerx, self.rect.centery - (0.7 * self.rect.size[0] * self.direction_y), 
                                 self.direction_x, self.direction_y, display, piattaforma)
                 sparo.play()
             bullet_group.add(bullet)
